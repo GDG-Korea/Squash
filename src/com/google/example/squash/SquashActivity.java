@@ -24,9 +24,29 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.google.example.games.basegameutils.BaseGameActivity;
 import com.google.example.squash.replay.ReplayView;
 
-public class SquashActivity extends Activity {
+public class SquashActivity extends BaseGameActivity {
+    public void setSigninButtonState() {
+        if (isSignedIn()) {
+            findViewById(R.id.sign_out_button).setVisibility(View.VISIBLE);
+            findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+        } else {
+            findViewById(R.id.sign_out_button).setVisibility(View.GONE);
+            findViewById(R.id.sign_in_button).setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onSignInFailed() {
+        setSigninButtonState();
+    }
+
+    @Override
+    public void onSignInSucceeded() {
+        setSigninButtonState();
+    }
 
     // If this is not 0, that app will show a challenge (for lesson 6!)
     public static int challengeScore = 0;
@@ -60,20 +80,7 @@ public class SquashActivity extends Activity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        AlertDialog.Builder builder = new AlertDialog.Builder(
-                                bind);
-
-                        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog,
-                                    int which) {
-                                dialog.dismiss();
-                            }
-                        };
-
-                        builder.setMessage("Hey, you need to hook this up!")
-                                .setPositiveButton("OK", dialogClickListener)
-                                .show();
+                        beginUserInitiatedSignIn();
                     }
                 });
 
@@ -81,7 +88,8 @@ public class SquashActivity extends Activity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // This button isn't visible.
+                        signOut();
+                        setSigninButtonState();
                     }
                 });
 
@@ -124,10 +132,13 @@ public class SquashActivity extends Activity {
 
     // Called whenever the Squash game starts.
     public void onGameStart(SquashView v) {
+        findViewById(R.id.sign_in_button).setVisibility(View.GONE);
+        findViewById(R.id.sign_out_button).setVisibility(View.GONE);
     }
 
     // Called whenever the Squash game stops.
     public void onGameStop(SquashView v) {
+        setSigninButtonState();
     }
 
 }

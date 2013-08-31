@@ -23,11 +23,9 @@
 
     <!-- sign-in button -->
 
-    <Button
+    <com.google.android.gms.common.SignInButton
         android:id="@+id/sign_in_button"
         android:layout_width="wrap_content"
-        android:text="Sign In"      
-        android:textColor="#ffffffff"
         android:layout_height="wrap_content" />
 
     <!-- sign-out button -->
