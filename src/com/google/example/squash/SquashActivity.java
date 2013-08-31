@@ -20,16 +20,23 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.google.android.gms.appstate.AppStateClient;
+import com.google.android.gms.appstate.OnStateLoadedListener;
 import com.google.example.games.basegameutils.BaseGameActivity;
 import com.google.example.squash.replay.ReplayView;
 
-public class SquashActivity extends BaseGameActivity {
+import java.io.UnsupportedEncodingException;
+
+public class SquashActivity extends BaseGameActivity implements OnStateLoadedListener {
     public static int REQUEST_ACHIEVEMENTS = 1001;
     public static int REQUEST_LEADERBOARD = 1002;
+
+    public static int LAST_SCORE_STATE = 0;
 
     public void setSigninButtonState() {
         if (isSignedIn()) {
@@ -49,12 +56,14 @@ public class SquashActivity extends BaseGameActivity {
     @Override
     public void onSignInSucceeded() {
         setSigninButtonState();
+        getAppStateClient().loadState(this, LAST_SCORE_STATE);
     }
 
     // If this is not 0, that app will show a challenge (for lesson 6!)
     public static int challengeScore = 0;
 
     public SquashActivity() {
+        super(CLIENT_GAMES | CLIENT_APPSTATE);
     }
 
     @Override
@@ -159,6 +168,47 @@ public class SquashActivity extends BaseGameActivity {
         getGamesClient().submitScore(
                 getResources().getString(R.string.leaderboard_bounces),
                 v.mScore);
+
+        if (isSignedIn() && v.mScore > 0) {
+            String score = String.valueOf(v.mScore);
+            getAppStateClient().updateState(LAST_SCORE_STATE, score.getBytes());
+        }
     }
 
+    @Override
+    public void onStateConflict(int stateKey, String ver, byte[] localData, byte[] serverData) {
+        Log.d("MultiSquash", "state conflict");
+        try {
+            int local = Integer.parseInt(new String(localData, "UTF-8"));
+            int server = Integer.parseInt(new String(serverData, "UTF-8"));
+            // select data that has the highest score:
+            getAppStateClient().resolveState(this, stateKey, ver,
+                    local > server ? localData : serverData);
+        } catch (UnsupportedEncodingException ex) {
+            Log.w("SquashActivity", "*** Error resolving conflict! (unsupported encoding)");
+            ex.printStackTrace();
+        } catch (NumberFormatException ex) {
+            Log.w("SquashActivity", "*** Error resolving conflict! (parse error)");
+            ex.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onStateLoaded(int statusCode, int statusKey, byte[] data) {
+        Log.d("MultiSquash", "onStateLoaded");
+        if (statusCode == AppStateClient.STATUS_OK) {
+            Log.d("MultiSquash", "loaded: " + data.toString());
+            try {
+                String s = new String(data,"UTF-8");
+                SquashView sv = (SquashView) findViewById(R.id.squashView);
+                sv.mScore = Integer.parseInt(s);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else
+        {
+            Log.e("MultiSquash", "failed because: " + statusCode);
+        }
+    }
 }
