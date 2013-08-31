@@ -28,6 +28,8 @@ import com.google.example.games.basegameutils.BaseGameActivity;
 import com.google.example.squash.replay.ReplayView;
 
 public class SquashActivity extends BaseGameActivity {
+    public static int REQUEST_ACHIEVEMENTS = 1001;
+
     public void setSigninButtonState() {
         if (isSignedIn()) {
             findViewById(R.id.sign_out_button).setVisibility(View.VISIBLE);
@@ -62,6 +64,10 @@ public class SquashActivity extends BaseGameActivity {
         case R.id.menu_reset:
             return true;
         case R.id.menu_achievements:
+            if (isSignedIn()) {
+                startActivityForResult(getGamesClient().getAchievementsIntent(),
+                        REQUEST_ACHIEVEMENTS);
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -134,11 +140,18 @@ public class SquashActivity extends BaseGameActivity {
     public void onGameStart(SquashView v) {
         findViewById(R.id.sign_in_button).setVisibility(View.GONE);
         findViewById(R.id.sign_out_button).setVisibility(View.GONE);
+        if (isSignedIn()) {
+            getGamesClient().unlockAchievement(getResources().getString(R.string.achievement_first));
+        }
     }
 
     // Called whenever the Squash game stops.
     public void onGameStop(SquashView v) {
         setSigninButtonState();
+        if (isSignedIn() && v.mScore > 0) {
+            getGamesClient().incrementAchievement(
+                    getResources().getString(R.string.achievement_20), v.mScore);
+        }
     }
 
 }

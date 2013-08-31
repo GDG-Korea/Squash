@@ -1,4 +1,6 @@
 <resources>
     <!-- TODO: Replace this by your app's app ID! -->
     <string name="app_id">687856319451</string>
+    <string name="achievement_first">CgkI2_e5u4IUEAIQAQ</string>
+    <string name="achievement_20">CgkI2_e5u4IUEAIQAg</string>
 </resources>
