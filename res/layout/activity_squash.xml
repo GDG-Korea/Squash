@@ -45,6 +45,14 @@
         android:textColor="#ffffffff"
         android:layout_alignParentBottom="true"
         android:text="Replay" />
-    
+
+    <Button
+        android:id="@+id/share_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Share"
+        android:textColor="#ffffffff"
+        android:layout_below="@+id/sign_out_button"
+        android:visibility="gone" />
 
 </RelativeLayout>
